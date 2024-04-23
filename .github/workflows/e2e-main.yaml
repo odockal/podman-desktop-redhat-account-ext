@@ -56,19 +56,16 @@ jobs:
         if: github.event_name == 'push'
         with: 
           path: podman-desktop-redhat-account-ext
-
+    
       - name: Setup default repository name
         env: 
           EVENT: ${{ github.event_name }}
         run: |
           repository=podman-desktop-redhat-account-ext
-          echo EVENT: $EVENT
-          echo REPO: ${{ github.event.inputs.repositoryName }}
           if [[ "$EVENT" == 'workflow_dispatch' ]]; then
             repository=${{ github.event.inputs.repositoryName }}
           fi
           echo "REPOSITORY=$repository" >> $GITHUB_ENV
-          cat $GITHUB_ENV
 
       # Checkout podman desktop
       - uses: actions/checkout@v4
@@ -77,59 +74,7 @@ jobs:
           ref: main
           path: podman-desktop
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      - name: Update podman
-        run: |
-          sudo sh -c "echo 'deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/unstable/xUbuntu_22.04/ /' > /etc/apt/sources.list.d/devel:kubic:libcontainers:unstable.list"
-          curl -L "https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_22.04/Release.key" | sudo apt-key add -
-          sudo apt-get update -qq
-          sudo apt-get -qq -y install podman || { echo "Start fallback steps for podman nightly installation from a static mirror" && \
-            sudo sh -c "echo 'deb http://ftp.lysator.liu.se/pub/opensuse/repositories/devel:/kubic:/libcontainers:/unstable/xUbuntu_22.04/ /' > /etc/apt/sources.list.d/devel:kubic:libcontainers:unstable.list" && \
-            curl -L "http://ftp.lysator.liu.se/pub/opensuse/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_22.04/Release.key" | sudo apt-key add - && \
-            sudo apt-get update && \
-            sudo apt-get -y install podman; }
-          podman version
-          # downgrade conmon package version to workaround issue with starting containers, see  https://github.com/containers/conmon/issues/475
-          # remove once the repository contains conmon 2.1.10
-          wget https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_22.04/amd64/conmon_2.1.2~0_amd64.deb -O /tmp/conmon_2.1.2.deb
-          sudo apt install /tmp/conmon_2.1.2.deb
-
-      - name: Build Podman Desktop for E2E tests
-        working-directory: ./podman-desktop
-        run: |
-          yarn --frozen-lockfile
-          yarn test:e2e:build
-
-      - name: Get yarn cache directory path
-        working-directory: ${{ env.REPOSITORY }}
-        id: yarn-cache-dir-path
-        run: echo "dir=$(yarn cache dir)" >> ${GITHUB_OUTPUT}
-
-      - uses: actions/cache@v4
-        id: yarn-cache
-        with:
-          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-yarn-
-
-      - name: Execute yarn in Red Hat Account Extension
+      - name: Test working dir
         working-directory: ${{ env.REPOSITORY }}
         run: |
-          yarn add -D @podman-desktop/tests-playwright@next
-          yarn --frozen-lockfile
-
-      - name: Run All E2E tests in Red Hat Account Extension
-        working-directory: ${{ env.REPOSITORY }}
-        env:
-          PODMAN_DESKTOP_ARGS: ${{ github.workspace }}/podman-desktop
-        run: yarn test:e2e
-
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: e2e-tests
-          path: ./**/tests/output/
+          echo "CHECKING PWD: $(pwd)"
