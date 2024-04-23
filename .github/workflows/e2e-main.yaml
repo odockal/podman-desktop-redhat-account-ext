@@ -58,14 +58,17 @@ jobs:
           path: podman-desktop-redhat-account-ext
 
       - name: Setup default repository name
+        env: 
+          EVENT: ${{ github.event_name }}
         run: |
           repository=podman-desktop-redhat-account-ext
-          if [[ "${{ github.event_name }}" == 'workflow_dispatch' ]]; then
+          echo EVENT: $EVENT
+          echo REPO: ${{ github.event.inputs.repositoryName }}
+          if [[ "$EVENT" == 'workflow_dispatch' ]]; then
             repository=${{ github.event.inputs.repositoryName }}
           fi
           echo "REPOSITORY=$repository" >> $GITHUB_ENV
-          echo REPO is: $repository
-          ls
+          cat $GITHUB_ENV
 
       # Checkout podman desktop
       - uses: actions/checkout@v4
