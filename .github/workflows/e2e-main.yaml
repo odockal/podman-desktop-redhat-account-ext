@@ -64,7 +64,7 @@ jobs:
             repository=${{ github.event.inputs.repositoryName }}
           fi
           echo "REPOSITORY=$repository" >> $GITHUB_ENV
-          echo $GITHUB_ENV
+          echo REPO is: $repository
           ls
 
       # Checkout podman desktop
