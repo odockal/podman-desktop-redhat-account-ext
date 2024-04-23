@@ -25,7 +25,7 @@ on:
     inputs:
       organization:
         default: 'redhat-developer'
-        description: 'Organization of the Podman Desktop repository'
+        description: 'Organization of the Red Hat Account Extension repository'
         type: string
         required: true
       repositoryName:
@@ -35,15 +35,16 @@ on:
         required: true
       branch:
         default: 'main'
-        description: 'Podman Desktop Extension SSO repo branch'
+        description: 'Red Hat Account Extension repo branch'
         type: string
         required: true
 
 jobs:
   e2e-tests:
-    name: Run E2E tests
+    name: Red Hat Account Extension E2E tests
     runs-on: ubuntu-22.04
     steps:
+
       - uses: actions/checkout@v4
         if: github.event_name == 'workflow_dispatch'
         with:
@@ -55,6 +56,15 @@ jobs:
         if: github.event_name == 'push'
         with: 
           path: podman-desktop-redhat-account-ext
+
+      - name: Setup default repository name
+        run: |
+          repository=podman-desktop-redhat-account-ext
+          if [[ "${{ github.event_name }}" == 'workflow_dispatch' ]]; then
+            repository=${{ github.event.inputs.repositoryName }}
+          fi
+          echo "REPOSITORY=$repository" >> $GITHUB_ENV
+          ls
 
       # Checkout podman desktop
       - uses: actions/checkout@v4
@@ -90,7 +100,7 @@ jobs:
           yarn test:e2e:build
 
       - name: Get yarn cache directory path
-        working-directory: ./podman-desktop-redhat-account-ext
+        working-directory: ${{ env.REPOSITORY }}
         id: yarn-cache-dir-path
         run: echo "dir=$(yarn cache dir)" >> ${GITHUB_OUTPUT}
 
@@ -102,12 +112,14 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-yarn-
 
-      - name: Execute yarn in SSO Extension
-        working-directory: ./podman-desktop-redhat-account-ext
-        run: yarn --frozen-lockfile
+      - name: Execute yarn in Red Hat Account Extension
+        working-directory: ${{ env.REPOSITORY }}
+        run: |
+          yarn add -D @podman-desktop/tests-playwright@next
+          yarn --frozen-lockfile
 
-      - name: Run All E2E tests
-        working-directory: ./podman-desktop-redhat-account-ext
+      - name: Run All E2E tests in Red Hat Account Extension
+        working-directory: ${{ env.REPOSITORY }}
         env:
           PODMAN_DESKTOP_ARGS: ${{ github.workspace }}/podman-desktop
         run: yarn test:e2e
