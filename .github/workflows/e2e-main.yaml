@@ -52,9 +52,9 @@ jobs:
     runs-on: ubuntu-24.04
     env: 
       MODE: ${{ inputs.mode }}
-      REPO: ${{ github.event.inputs.repositoryName && 'podman-desktop-redhat-account-ext' }}
-      ORGANIZATION: ${{ github.event.inputs.organization && 'redhat-developer' }}
-      BRANCH: ${{ github.event.inputs.branch && 'main' }}
+      REPO: ${{ inputs.repositoryName && 'podman-desktop-redhat-account-ext' }}
+      ORGANIZATION: ${{ inputs.organization && 'redhat-developer' }}
+      BRANCH: ${{ inputs.branch && 'main' }}
     steps:
       - uses: actions/checkout@v4
         if: github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_run'
