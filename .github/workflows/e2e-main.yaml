@@ -51,7 +51,7 @@ jobs:
     name: Red Hat Account Extension E2E tests
     runs-on: ubuntu-24.04
     env: 
-      MODE: ${{ inputs.mode }}
+      MODE: ${{ inputs.mode || 'production' }}
       REPO: ${{ inputs.repositoryName || 'podman-desktop-redhat-account-ext' }}
       ORGANIZATION: ${{ inputs.organization || 'redhat-developer' }}
       BRANCH: ${{ inputs.branch || 'main' }}
