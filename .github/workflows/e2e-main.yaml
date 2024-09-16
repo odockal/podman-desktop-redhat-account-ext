@@ -94,7 +94,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'pnpm'
 
       - name: Update podman v. 5.x
         run: |
