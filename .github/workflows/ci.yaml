@@ -24,10 +24,8 @@ on:
 
 jobs:
   CI:
-    strategy:
-      matrix:
-        target: [ubuntu-20.04]
-    uses: redhat-developer/podman-desktop-redhat-account-ext/.github/workflows/build.yaml@main
-    with: 
-      runs-on: ${{ matrix.target }}
-      registry: 'ghcr'
+    runs-on: uvuntu-20.04
+    steps:
+      - uses: action/checkout@v4
+      - name: Dummy step
+        run: echo "Dummy"
