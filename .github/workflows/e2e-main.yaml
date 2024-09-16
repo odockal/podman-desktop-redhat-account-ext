@@ -52,13 +52,16 @@ jobs:
     runs-on: ubuntu-24.04
     env: 
       MODE: ${{ inputs.mode }}
+      REPO: ${{ github.event.inputs.repositoryName && 'podman-desktop-redhat-account-ext' }}
+      ORGANIZATION: ${{ github.event.inputs.organization && 'redhat-developer' }}
+      BRANCH: ${{ github.event.inputs.branch && 'main' }}
     steps:
       - uses: actions/checkout@v4
         if: github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_run'
         with:
-          repository: ${{ github.event.inputs.organization }}/${{ github.event.inputs.repositoryName }}
-          ref: ${{ github.event.inputs.branch }}
-          path: ${{ github.event.inputs.repositoryName }}
+          repository: ${{ env.ORGANIZATION }}/${{ env.REPO }}
+          ref: ${{ env.BRANCH }}
+          path: ${{ env.REPO }}
 
       - uses: actions/checkout@v4
         if: github.event_name == 'push'
@@ -71,7 +74,7 @@ jobs:
         run: |
           repository=podman-desktop-redhat-account-ext
           if [[ "$EVENT" == 'workflow_dispatch' || "$EVENT" == 'workflow_run' ]]; then
-            repository=${{ github.event.inputs.repositoryName }}
+            repository=${{ env.REPO }}
           fi
           echo "REPOSITORY=$repository" >> $GITHUB_ENV
 
