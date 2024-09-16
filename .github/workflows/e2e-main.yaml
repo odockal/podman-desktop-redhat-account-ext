@@ -54,7 +54,7 @@ jobs:
       MODE: ${{ inputs.mode }}
     steps:
       - uses: actions/checkout@v4
-        if: github.event_name == 'workflow_dispatch'
+        if: github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_run'
         with:
           repository: ${{ github.event.inputs.organization }}/${{ github.event.inputs.repositoryName }}
           ref: ${{ github.event.inputs.branch }}
@@ -70,7 +70,7 @@ jobs:
           EVENT: ${{ github.event_name }}
         run: |
           repository=podman-desktop-redhat-account-ext
-          if [[ "$EVENT" == 'workflow_dispatch' ]]; then
+          if [[ "$EVENT" == 'workflow_dispatch' || "$EVENT" == 'workflow_run' ]]; then
             repository=${{ github.event.inputs.repositoryName }}
           fi
           echo "REPOSITORY=$repository" >> $GITHUB_ENV
@@ -86,11 +86,12 @@ jobs:
         name: Install pnpm
         with:
           run_install: false
-          package_json_file: ./podman-desktop/package.json
+          package_json_file: ./podman-desktop-redhat-account-ext/package.json
 
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: 'pnpm'
 
       - name: Update podman v. 5.x
         run: |
