@@ -146,6 +146,7 @@ jobs:
           pnpm install --no-frozen-lockfile
 
       - name: Set default browser to Chromium
+        if: false
         run: |
           # TODO: Follow up issue: https://github.com/redhat-developer/podman-desktop-redhat-account-ext/issues/727
           chromiumBrowser=$(which chromium-browser)
