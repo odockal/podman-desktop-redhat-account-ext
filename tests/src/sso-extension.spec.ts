@@ -20,7 +20,7 @@ import { exec } from 'node:child_process';
 import path, { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import type { Browser, Page } from '@playwright/test';
+import { chromium, type Browser, type Page } from '@playwright/test';
 import type { ConfirmInputValue, NavigationBar} from '@podman-desktop/tests-playwright';
 import { 
   AuthenticationPage, 
@@ -37,11 +37,11 @@ import {
   podmanExtension, 
   RegistriesPage,
   RunnerOptions, 
-  startChromium, 
   StatusBar, 
   test, 
   TroubleshootingPage, 
-  ArchitectureType  } from '@podman-desktop/tests-playwright';
+  ArchitectureType,  
+  waitUntil} from '@podman-desktop/tests-playwright';
 
 import { SSOAuthenticationProviderCardPage } from './model/pages/sso-authentication-page';
 import { SSOExtensionPage } from './model/pages/sso-extension-page';
@@ -384,6 +384,29 @@ test.describe.serial('Red Hat Authentication extension verification', () => {
     await removeExtension(navigationBar);
   });
 });
+
+export async function startChromium(port: string, tracesPath: string): Promise<Browser> {
+  console.log('Starting a web server on port 9222');
+  const browserLaunch = await chromium.launch({
+    headless: false,
+    args: [`--remote-debugging-port=${port}`, '--use-mock-keychain', '--disable-features=PasswordManagerRedesign'],
+    tracesDir: tracesPath,
+    slowMo: 200,
+  });
+
+  // hard wait
+  await waitUntil(async () => browserLaunch?.isConnected(), {
+    timeout: 10_000,
+    message: 'Waiting for browser to be connected',
+    sendError: false,
+  });
+  // Connect to the same Chrome instance via CDP
+  // possible option is to use chromium.connectOverCDP(`http://localhost:${port}`);
+  if (!browserLaunch) {
+    throw new Error('Browser object was not initialized properly');
+  }
+  return browserLaunch;
+}
 
 async function removeExtension(navBar: NavigationBar): Promise<void> {
   const extensions = await navBar.openExtensions();
