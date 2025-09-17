@@ -52,7 +52,8 @@ let extensionInstalled = false;
 let extensionCard: ExtensionCardPage;
 let ssoProvider: SSOAuthenticationProviderCardPage;
 let authPage: AuthenticationPage;
-const imageName = 'ghcr.io/redhat-developer/podman-desktop-redhat-account-ext:latest';
+// const imageName = 'ghcr.io/redhat-developer/podman-desktop-redhat-account-ext:latest';
+const imageName = 'quay.io/odockal/extension-sso:nightly';
 const extensionLabel = 'redhat.redhat-authentication';
 const extensionLabelName = 'redhat-authentication';
 const authProviderName = 'Red Hat SSO';
@@ -237,8 +238,8 @@ test.describe.serial('Red Hat Authentication extension verification', () => {
         // Handle Cookies in the popup iframe
         const cookiesManager = 'TrustArc Cookie Consent Manager';
         const consentManager = 'TrustArc Consent Manager Frame';
-        await handleCookies(chromiumPage, consentManager, 'Proceed with Required Cookies only', 10_000);
-        await handleCookies(chromiumPage, cookiesManager, 'Accept default', 10_000);
+        await handleCookies(chromiumPage, cookiesManager, 'Proceed with Required Cookies only', 10_000);
+        await handleCookies(chromiumPage, consentManager, 'Accept default', 10_000);
         if (browser) {
           await findPageWithTitleInBrowser(browser, expectedAuthPageTitle);
         }
@@ -328,12 +329,12 @@ test.describe.serial('Red Hat Authentication extension verification', () => {
       await playExpect(successImgRegistry).toBeVisible({ timeout: 20_000 });
       // subscription activation is finished
       // this runs endless on CI windows
-      if (isWindows && isCI) {
-        console.log('Skipping waiting for subscription activation on Windows CI');
-      } else {
-        const successImgSubscription = tasksManager.getByRole('img', { name: 'success icon of task Activating Red Hat Subscription' });
-        await playExpect(successImgSubscription).toBeVisible({ timeout: 60_000 });
-      }
+      // if (isWindows && isCI) {
+      //   console.log('Skipping waiting for subscription activation on Windows CI');
+      // } else {
+      const successImgSubscription = tasksManager.getByRole('img', { name: 'success icon of task Activating Red Hat Subscription' });
+      await playExpect(successImgSubscription).toBeVisible({ timeout: 120_000 });
+      // }
       // close tasks manager
       const hideButton = tasksManager.getByRole('button').and(tasksManager.getByTitle('Hide'));
       await playExpect(hideButton).toBeVisible();
