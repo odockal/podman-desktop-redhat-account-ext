@@ -310,7 +310,7 @@ test.describe.serial('Red Hat Authentication extension verification', () => {
 
     test('Tasks Configuring Red Hat Registry and Activating Red Hat Subscription are completed', async ({ page }) => {
       test.setTimeout(120_000);
-      test.skip(isCI && (isMac || isLinux), 'Mac/Linux issue on CI: https://github.com/redhat-developer/podman-desktop-redhat-account-ext/issues/898');
+      test.skip(isCI && isLinux, 'Mac/Linux issue on CI: https://github.com/redhat-developer/podman-desktop-redhat-account-ext/issues/898');
       console.log('Finding Tasks in status Bar');
       const statusBar = new StatusBar(page);
       await statusBar.tasksButton.click();
