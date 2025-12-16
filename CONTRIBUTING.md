@@ -1,4 +1,4 @@
-# Contributing test2
+# Contributing
 
 ## Certificate of Origin
  
