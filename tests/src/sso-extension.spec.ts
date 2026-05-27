@@ -20,7 +20,7 @@ import { exec } from 'node:child_process';
 import path, { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import type { Browser, BrowserContext, Page } from '@playwright/test';
+import type { Browser, BrowserContext, Locator, Page } from '@playwright/test';
 import type { ConfirmInputValue, NavigationBar} from '@podman-desktop/tests-playwright';
 import { 
   ArchitectureType,
@@ -238,6 +238,7 @@ test.describe.serial('Red Hat Authentication extension verification', () => {
         await handleCookies(chromiumPage, 'Required Cookies only', 10_000);
         await chromiumPage.waitForTimeout(1_000);
         await handleCookies(chromiumPage, 'Accept Default', 10_000);
+        // await handleDialogCookies(chromiumPage, undefined, 'Accept default', 10_000);
         if (browser) {
           await findPageWithTitleInBrowser(browser, expectedAuthPageTitle);
         }
@@ -436,13 +437,60 @@ export async function terminateExternalBrowser(): Promise<void> {
 
 export async function handleCookies(page: Page, buttonName: string, timeout: number): Promise<void> {
   const iframe = page.frameLocator('iframe:visible');
-  const button = iframe.getByRole('button', { name: buttonName });
+  let cookiesContainer = iframe.owner();
+  if (await checkLocatorExistence(cookiesContainer)) {
+    console.log('Iframe is visible');
+  } else {
+    console.log('Iframe not visible');
+  }
+  cookiesContainer = page.getByRole('dialog');
+  if (await checkLocatorExistence(cookiesContainer)) {
+    console.log('Dialog is visible');
+  } else {
+    console.log('Dialog not visible');
+  }
+  const regexp = new RegExp(buttonName);
+  const button = cookiesContainer.getByRole('button', { name: regexp });
 
   try {
     await playExpect(button).toBeVisible({ timeout: timeout });
     await button.scrollIntoViewIfNeeded();
     await button.click();
   } catch (error) {
-    console.log(`Error handling cookies: ${error}`);
+    console.log(`Warning: Error handling cookies, cookies container not found: ${error}`);
   }
+}
+
+export async function handleDialogCookies(
+  page: Page,
+  dialogTitle: undefined | string,
+  buttonName: string,
+  timeout: number,
+): Promise<void> {
+  const dialog = dialogTitle ? page.getByRole('dialog', { name: dialogTitle}) : page.getByRole('dialog');
+  const button = dialog.getByRole('button', { name: buttonName });
+  let buttonVisible = false;
+  try {
+    await playExpect(button).toBeVisible({ timeout: timeout });
+    buttonVisible = true;
+  } catch (error: unknown) {
+    console.log(`Button Locator not found: ${error}`);
+  }
+  if (buttonVisible) {
+    await button.click();
+    console.log(`Clicked on the button: ${buttonName}`);
+  } else {
+    console.log(`${buttonName} button is not visible, skipping confirmation...`);
+  }
+}
+
+// function is dedicated to verify if some locator exists, depending on external circumstances
+export async function checkLocatorExistence(locator: Locator, timeout = 5000): Promise<boolean> {
+  try {
+    await playExpect(locator).toBeVisible({ timeout: timeout });
+  } catch (error: unknown) {
+    console.log(`Locator not found: ${error}`);
+    return false;
+  }
+  return true;
 }
