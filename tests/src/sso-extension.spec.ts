@@ -227,7 +227,7 @@ test.describe.serial('Red Hat Authentication extension verification', () => {
       const urlMatch = await getEntryFromConsoleLogs(page, /\[redhat-authentication\].*openid-connect.*/, urlRegex, 'sso.redhat.com', 25_000);
       // start up chrome instance and return browser object
       if (urlMatch) {
-        browser = await startChromium(chromePort, path.join(browserOutputPath));
+        browser = await startChromium(chromePort, path.join(browserOutputPath), ['--password-store=basic']);
         context = await browser.newContext();
         await context.tracing.start({ screenshots: true, snapshots: true, sources: true });
         const newPage = await context.newPage();
