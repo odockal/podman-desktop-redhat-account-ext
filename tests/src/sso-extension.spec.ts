@@ -41,7 +41,8 @@ import {
   startChromium, 
   StatusBar, 
   test, 
-  TroubleshootingPage} from '@podman-desktop/tests-playwright';
+  TroubleshootingPage,
+  checkLocatorExistence} from '@podman-desktop/tests-playwright';
 
 import { SSOAuthenticationProviderCardPage } from './model/pages/sso-authentication-page';
 import { SSOExtensionPage } from './model/pages/sso-extension-page';
@@ -442,13 +443,14 @@ export async function handleCookies(page: Page, buttonName: string, timeout: num
     console.log('Iframe is visible');
   } else {
     console.log('Iframe not visible');
+    cookiesContainer = page.getByRole('dialog');
+    if (await checkLocatorExistence(cookiesContainer)) {
+      console.log('Dialog is visible');
+    } else {
+      console.log('Dialog not visible');
+    }
   }
-  cookiesContainer = page.getByRole('dialog');
-  if (await checkLocatorExistence(cookiesContainer)) {
-    console.log('Dialog is visible');
-  } else {
-    console.log('Dialog not visible');
-  }
+
   const regexp = new RegExp(buttonName);
   const button = cookiesContainer.getByRole('button', { name: regexp });
 
@@ -459,38 +461,4 @@ export async function handleCookies(page: Page, buttonName: string, timeout: num
   } catch (error) {
     console.log(`Warning: Error handling cookies, cookies container not found: ${error}`);
   }
-}
-
-export async function handleDialogCookies(
-  page: Page,
-  dialogTitle: undefined | string,
-  buttonName: string,
-  timeout: number,
-): Promise<void> {
-  const dialog = dialogTitle ? page.getByRole('dialog', { name: dialogTitle}) : page.getByRole('dialog');
-  const button = dialog.getByRole('button', { name: buttonName });
-  let buttonVisible = false;
-  try {
-    await playExpect(button).toBeVisible({ timeout: timeout });
-    buttonVisible = true;
-  } catch (error: unknown) {
-    console.log(`Button Locator not found: ${error}`);
-  }
-  if (buttonVisible) {
-    await button.click();
-    console.log(`Clicked on the button: ${buttonName}`);
-  } else {
-    console.log(`${buttonName} button is not visible, skipping confirmation...`);
-  }
-}
-
-// function is dedicated to verify if some locator exists, depending on external circumstances
-export async function checkLocatorExistence(locator: Locator, timeout = 5000): Promise<boolean> {
-  try {
-    await playExpect(locator).toBeVisible({ timeout: timeout });
-  } catch (error: unknown) {
-    console.log(`Locator not found: ${error}`);
-    return false;
-  }
-  return true;
 }

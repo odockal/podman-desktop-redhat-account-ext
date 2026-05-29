@@ -126,7 +126,7 @@ jobs:
       # Install dbus-x11 package to allow dbus session for user for particular display (xvfb-maybe used in e2e test)
       # for reference, similar issue: https://github.com/actions/runner-images/issues/12127
       - name: Install dbus-x11 package
-        run: sudo apt-get install dbus-x11
+        run: sudo apt-get install dbus-x11 libsecret-1-0 gnome-keyring
 
       - name: Revert unprivileged user namespace restrictions in Ubuntu 24.04
         run: |
@@ -177,6 +177,7 @@ jobs:
           AUTH_E2E_TESTS: true
         run: |
           export $(dbus-launch)
+          dbus-run-session -- sh -c 'echo "test" | gnome-keyring-daemon --unlock'
           pnpm test:e2e
 
       - name: Run All E2E tests in Red Hat Account Extension in Production mode
@@ -189,6 +190,7 @@ jobs:
           AUTH_E2E_TESTS: true
         run: |
           export $(dbus-launch)
+          dbus-run-session -- sh -c 'echo "test" | gnome-keyring-daemon --unlock'
           pnpm test:e2e
 
       - name: Publish Test Report
